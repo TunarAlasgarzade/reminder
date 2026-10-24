@@ -1,0 +1,182 @@
+import 'package:flutter/material.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'package:reminder/pages/add_task_page.dart';
+import 'package:reminder/pages/edit_task_page.dart';
+import 'package:reminder/services/noti_service.dart';
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final _tasks = Hive.box("tasks");
+  final _notiService = NotiService();
+
+  String formatDateTime(DateTime date) {
+    return "${
+      date.day.toString().padLeft(2, "0")
+    }.${
+      date.month.toString().padLeft(2, "0")
+    }.${
+      date.year
+    } ${
+      date.hour.toString().padLeft(2, "0")
+    }:${
+      date.minute.toString().padLeft(2, "0")
+    }";
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey.shade900,
+      appBar: AppBar(
+        title: Text("Reminder", style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.green,
+      ),
+      body: SafeArea(
+        child: Center(
+          child: _buildTaskList()
+        )
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.push(
+          context, MaterialPageRoute(
+            builder: (context) => AddTaskPage()
+          )
+        ),
+        backgroundColor: Colors.green,
+        child: Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildTaskList() {
+    return ValueListenableBuilder(
+      valueListenable: _tasks.listenable(),
+      builder: (context, box, child) {
+        if (box.isEmpty) {
+          return Text("No tasks yet.", style: TextStyle(color: Colors.white));
+        }
+        return ListView.builder(
+          itemCount: box.length,
+          itemBuilder: (context, index) {
+            final data = box.getAt(index);
+            return ListTile(
+              title: Text(
+                data["task"], 
+                style: TextStyle(
+                  decoration: (data["isComplete"] ?? false) 
+                  ? TextDecoration.lineThrough
+                  : null,
+                  decorationColor: Colors.white,
+                  overflow: TextOverflow.ellipsis,
+                  color: Colors.white,
+                )
+              ),
+              subtitle: Text(
+                formatDateTime(data["scheduledAt"]),
+                style: TextStyle(color: Colors.white),
+              ),
+              leading: Checkbox(
+                value: data["isComplete"] ?? false, 
+                onChanged: (value) {
+                  data["isComplete"] = value;
+                  box.putAt(index, data);
+                },
+                activeColor: Colors.green,
+              ),
+              trailing: PopupMenuButton(
+                onSelected: (value) {
+                  if (value == "delete") {
+                    showDialog(
+                      context: context, 
+                      builder: (context) => AlertDialog(
+                        backgroundColor: Colors.grey.shade900,
+                        title: Text(
+                          "Delete Task?", 
+                          style: TextStyle(color: Colors.white)
+                        ),
+                        content: Text(
+                          "Are you sure you want to delete this task?",
+                          style: TextStyle(color: Colors.white)
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context), 
+                            child: Text(
+                              "Cancel",
+                              style: TextStyle(color: Colors.green)
+                            )
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              Navigator.pop(context);
+                              box.deleteAt(index);
+                              await _notiService.cancelNotification(data["id"]);
+                            }, 
+                            child: Text(
+                              "Delete",
+                              style: TextStyle(color: Colors.green)
+                            )
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  if (value == "edit") {
+                    Navigator.push(
+                      context, MaterialPageRoute(
+                        builder: (context) => EditTaskPage(
+                          taskName: data["task"], 
+                          date: data["scheduledAt"], 
+                          time: TimeOfDay.fromDateTime(data["scheduledAt"]), 
+                          id: data["id"],
+                        ),
+                      )
+                    );
+                  }
+                },
+                itemBuilder: (context) {
+                  return [
+                    const PopupMenuItem(
+                      value: "edit",
+                      child: Text("Edit Task", style: TextStyle(color: Colors.white)),
+                    ),
+                    const PopupMenuItem(
+                      value: "delete",
+                      child: Text("Delete Task", style: TextStyle(color: Colors.red)),
+                    ),
+                  ];
+                },
+                iconColor: Colors.white,
+                color: Colors.grey.shade800,
+              ),
+              onTap: () {
+                showDialog(
+                  context: context, 
+                  builder: (context) => AlertDialog(
+                    title: SelectableText(
+                      data["task"], 
+                      style: TextStyle(
+                        decoration: (data["isComplete"] ?? false) 
+                        ? TextDecoration.lineThrough 
+                        : null,
+                        color: Colors.white,
+                        decorationColor: Colors.white,
+                      )
+                    ),
+                    backgroundColor: Colors.grey.shade900,
+                  ),
+                );
+              },
+            );
+          },
+        );
+      }
+    );
+  }
+}
