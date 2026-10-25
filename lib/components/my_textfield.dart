@@ -25,13 +25,13 @@ class MyTextfield extends StatelessWidget {
       maxLines: maxLines ?? 1,
       minLines: minLines ?? 1,
       onChanged: onChanged,
-      cursorColor: Colors.green,
-      style: TextStyle(color: Colors.white),
+      cursorColor: Theme.of(context).colorScheme.primary,
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
       decoration: InputDecoration(
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(
-            color: Colors.green,
+            color: Theme.of(context).colorScheme.primary,
             width: 2
           )
         ),
@@ -41,7 +41,7 @@ class MyTextfield extends StatelessWidget {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(
-            color: Colors.green,
+            color: Theme.of(context).colorScheme.primary,
             width: 2
           ),
         ),

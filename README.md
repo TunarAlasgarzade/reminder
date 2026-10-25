@@ -41,8 +41,10 @@ A simple reminder app built with Flutter that lets you create tasks, schedule no
    ```
 
 ## Tech Stack
+
 - Flutter 
 - Dart
 - hive_ce
 - flutter_local_notifications
 - timezone
+- provider

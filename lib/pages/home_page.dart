@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:reminder/pages/add_task_page.dart';
 import 'package:reminder/pages/edit_task_page.dart';
 import 'package:reminder/services/noti_service.dart';
+import 'package:reminder/themes/theme_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -32,10 +34,23 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade900,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text("Reminder", style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
+            }, 
+            icon: Icon(
+              Provider.of<ThemeProvider>(context).isDarkMode 
+              ? Icons.wb_sunny 
+              : Icons.nightlight_round, 
+              color: Colors.white
+            )
+          ),
+        ],
       ),
       body: SafeArea(
         child: Center(
@@ -48,7 +63,7 @@ class _HomePageState extends State<HomePage> {
             builder: (context) => AddTaskPage()
           )
         ),
-        backgroundColor: Colors.green,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         child: Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -59,7 +74,11 @@ class _HomePageState extends State<HomePage> {
       valueListenable: _tasks.listenable(),
       builder: (context, box, child) {
         if (box.isEmpty) {
-          return Text("No tasks yet.", style: TextStyle(color: Colors.white));
+          return Text(
+            "No tasks yet.", style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface
+            )
+          );
         }
         return ListView.builder(
           itemCount: box.length,
@@ -72,14 +91,14 @@ class _HomePageState extends State<HomePage> {
                   decoration: (data["isComplete"] ?? false) 
                   ? TextDecoration.lineThrough
                   : null,
-                  decorationColor: Colors.white,
+                  decorationColor: Theme.of(context).colorScheme.onSurface,
                   overflow: TextOverflow.ellipsis,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onSurface,
                 )
               ),
               subtitle: Text(
                 formatDateTime(data["scheduledAt"]),
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
               ),
               leading: Checkbox(
                 value: data["isComplete"] ?? false, 
@@ -87,7 +106,7 @@ class _HomePageState extends State<HomePage> {
                   data["isComplete"] = value;
                   box.putAt(index, data);
                 },
-                activeColor: Colors.green,
+                activeColor: Theme.of(context).colorScheme.primary,
               ),
               trailing: PopupMenuButton(
                 onSelected: (value) {
@@ -95,21 +114,21 @@ class _HomePageState extends State<HomePage> {
                     showDialog(
                       context: context, 
                       builder: (context) => AlertDialog(
-                        backgroundColor: Colors.grey.shade900,
+                        backgroundColor: Theme.of(context).colorScheme.surface,
                         title: Text(
                           "Delete Task?", 
-                          style: TextStyle(color: Colors.white)
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface)
                         ),
                         content: Text(
                           "Are you sure you want to delete this task?",
-                          style: TextStyle(color: Colors.white)
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface)
                         ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context), 
                             child: Text(
                               "Cancel",
-                              style: TextStyle(color: Colors.green)
+                              style: TextStyle(color: Theme.of(context).colorScheme.primary)
                             )
                           ),
                           TextButton(
@@ -120,7 +139,7 @@ class _HomePageState extends State<HomePage> {
                             }, 
                             child: Text(
                               "Delete",
-                              style: TextStyle(color: Colors.green)
+                              style: TextStyle(color: Theme.of(context).colorScheme.primary)
                             )
                           ),
                         ],
@@ -142,9 +161,13 @@ class _HomePageState extends State<HomePage> {
                 },
                 itemBuilder: (context) {
                   return [
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: "edit",
-                      child: Text("Edit Task", style: TextStyle(color: Colors.white)),
+                      child: Text(
+                        "Edit Task", style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface
+                        )
+                      ),
                     ),
                     const PopupMenuItem(
                       value: "delete",
@@ -152,8 +175,8 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ];
                 },
-                iconColor: Colors.white,
-                color: Colors.grey.shade800,
+                iconColor: Theme.of(context).colorScheme.onSurface,
+                color: Theme.of(context).colorScheme.secondary,
               ),
               onTap: () {
                 showDialog(
@@ -165,11 +188,11 @@ class _HomePageState extends State<HomePage> {
                         decoration: (data["isComplete"] ?? false) 
                         ? TextDecoration.lineThrough 
                         : null,
-                        color: Colors.white,
-                        decorationColor: Colors.white,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        decorationColor: Theme.of(context).colorScheme.onSurface,
                       )
                     ),
-                    backgroundColor: Colors.grey.shade900,
+                    backgroundColor: Theme.of(context).colorScheme.surface,
                   ),
                 );
               },
